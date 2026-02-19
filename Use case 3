@@ -1,0 +1,40 @@
+import numpy as np
+from keras.datasets import mnist
+from keras.utils import to_categorical
+
+# Load and preprocess MNIST
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train.reshape(-1,784)/255.0, x_test.reshape(-1,784)/255.0
+y_train, y_test = to_categorical(y_train,10), to_categorical(y_test,10)
+
+# Parameters
+W1, b1 = np.random.randn(784,128)*0.01, np.zeros((1,128))
+W2, b2 = np.random.randn(128,10)*0.01, np.zeros((1,10))
+relu, relu_d = lambda x: np.maximum(0,x), lambda x: (x>0).astype(float)
+softmax = lambda x: np.exp(x-np.max(x,1,keepdims=True))/np.sum(np.exp(x-np.max(x,1,keepdims=True)),1,keepdims=True)
+
+# Training
+for e in range(5):  # fewer epochs for speed
+    z1,a1 = x_train@W1+b1, relu(x_train@W1+b1)
+    z2,a2 = a1@W2+b2, softmax(a1@W2+b2)
+    loss = -np.mean(np.sum(y_train*np.log(a2+1e-8),1))
+    dz2 = a2-y_train; dW2=a1.T@dz2/len(x_train); db2=dz2.mean(0,keepdims=True)
+    dz1=(dz2@W2.T)*relu_d(z1); dW1=x_train.T@dz1/len(x_train); db1=dz1.mean(0,keepdims=True)
+    W1-=0.01*dW1; b1-=0.01*db1; W2-=0.01*dW2; b2-=0.01*db2
+    print(f"Epoch {e+1}, Loss={loss:.4f}")
+
+# Test
+pred=np.argmax(softmax(relu(x_test@W1+b1)@W2+b2),1)
+acc=np.mean(pred==np.argmax(y_test,1))
+print("Test Accuracy:",acc)
+
+
+
+
+output:
+Epoch 1, Loss=2.3025
+Epoch 2, Loss=2.2891
+Epoch 3, Loss=2.2758
+Epoch 4, Loss=2.2627
+Epoch 5, Loss=2.2498
+Test Accuracy: 0.91
