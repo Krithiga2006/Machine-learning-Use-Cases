@@ -1,0 +1,45 @@
+import math
+from collections import Counter
+
+def entropy(data):
+    target = [row[-1] for row in data]
+    total = len(target)
+    return sum((-c/total) * math.log2(c/total) for c in Counter(target).values())
+
+def info_gain(data, attr):
+    total = entropy(data)
+    vals = set(row[attr] for row in data)
+    return total - sum((len(sub)/len(data)) * entropy(sub)
+                       for v in vals
+                       for sub in [[r for r in data if r[attr] == v]])
+
+def id3(data, attrs):
+    target = [row[-1] for row in data]
+    if target.count(target[0]) == len(target): return target[0]
+    if not attrs: return Counter(target).most_common(1)[0][0]
+    best = max(attrs, key=lambda a: info_gain(data, a))
+    tree = {best: {}}
+    for v in set(row[best] for row in data):
+        sub = [r for r in data if r[best] == v]
+        tree[best][v] = id3(sub, [a for a in attrs if a != best]) if sub else Counter(target).most_common(1)[0][0]
+    return tree
+
+# Dataset: (Fever, Cough, Fatigue, AgeGroup, Disease)
+dataset = [
+    ("High","Yes","Yes","Young","Yes"),
+    ("High","Yes","No","Middle","Yes"),
+    ("Low","No","Yes","Old","No"),
+    ("Low","Yes","No","Young","No"),
+    ("High","No","Yes","Old","Yes"),
+    ("Low","No","No","Middle","No"),
+]
+
+tree = id3(dataset, [0,1,2,3])
+print("Decision Tree:", tree)
+
+
+
+
+
+Output:
+Decision Tree: {0: {'High': 'Yes', 'Low': 'No'}}
