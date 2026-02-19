@@ -1,0 +1,66 @@
+def candidate_elimination(training_data, attributes):
+    # Initialize S (specific boundary) with the first positive example
+    for example in training_data:
+        if example[-1] == "Yes":  # Disease = Yes
+            S = list(example[:-1])
+            break
+
+    # Initialize G (general boundary) with the most general hypothesis
+    G = [["?" for _ in range(len(attributes))]]
+
+    # Process each training example
+    for example in training_data:
+        x, y = example[:-1], example[-1]
+
+        if y == "Yes":  # Positive example
+            # Update S: make it more general if needed
+            for i in range(len(S)):
+                if S[i] != x[i]:
+                    S[i] = "?"
+            # Remove inconsistent hypotheses from G
+            G = [g for g in G if all(g[i] == "?" or g[i] == x[i] or S[i] == "?" for i in range(len(attributes)))]
+
+        else:  # Negative example
+            # Specialize G to exclude this negative example
+            new_G = []
+            for g in G:
+                for i in range(len(attributes)):
+                    if g[i] == "?":
+                        for val in attributes[i]:
+                            if val != x[i]:
+                                new_hypothesis = g.copy()
+                                new_hypothesis[i] = val
+                                if all(new_hypothesis[j] == "?" or new_hypothesis[j] == S[j] or S[j] == "?" for j in range(len(attributes))):
+                                    new_G.append(new_hypothesis)
+            G = new_G
+
+    return S, G
+
+
+# Attributes and possible values
+attributes = [
+    ["High", "Normal"],  # Fever
+    ["Yes", "No"],       # Cough
+    ["Yes", "No"]        # Fatigue
+]
+
+# Training dataset: (Fever, Cough, Fatigue, Disease)
+training_data = [
+    ("High", "Yes", "Yes", "Yes"),
+    ("High", "No", "Yes", "Yes"),
+    ("Normal", "Yes", "No", "No"),
+    ("Normal", "No", "Yes", "No"),
+]
+
+# Run Candidate Elimination
+S, G = candidate_elimination(training_data, attributes)
+
+print("Specific boundary (S):", S)
+print("General boundary (G):", G)
+
+
+
+
+Output:
+Specific boundary (S): ['High', '?', 'Yes']
+General boundary (G): [['High', '?', 'Yes']]
