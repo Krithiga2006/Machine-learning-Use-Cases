@@ -1,0 +1,56 @@
+from pgmpy.models import BayesianNetwork
+from pgmpy.factors.discrete import TabularCPD
+from pgmpy.inference import VariableElimination
+
+# Define the Bayesian Network structure
+model = BayesianNetwork([('StudyHours', 'Pass'),
+                         ('Attendance', 'Pass')])
+
+# Define CPDs (Conditional Probability Distributions)
+
+# StudyHours: High or Low
+cpd_study = TabularCPD(variable='StudyHours',
+                       variable_card=2,
+                       values=[[0.5],  # Low
+                               [0.5]]) # High
+
+# Attendance: High or Low
+cpd_attendance = TabularCPD(variable='Attendance',
+                            variable_card=2,
+                            values=[[0.5],  # Low
+                                    [0.5]]) # High
+
+# Pass depends on StudyHours and Attendance
+# Order: StudyHours (Low, High), Attendance (Low, High)
+cpd_pass = TabularCPD(variable='Pass',
+                      variable_card=2,
+                      values=[
+                          [0.9, 0.6, 0.6, 0.1],  # Fail probabilities
+                          [0.1, 0.4, 0.4, 0.9]   # Pass probabilities
+                      ],
+                      evidence=['StudyHours', 'Attendance'],
+                      evidence_card=[2, 2])
+
+# Add CPDs to the model
+model.add_cpds(cpd_study, cpd_attendance, cpd_pass)
+
+# Check if the model is valid
+print("Model valid?", model.check_model())
+
+# Perform inference
+infer = VariableElimination(model)
+
+# Query: If StudyHours=High and Attendance=High
+result = infer.map_query(variables=['Pass'],
+                         evidence={'StudyHours': 1, 'Attendance': 1})
+
+print("Prediction:", "Yes (Pass)" if result['Pass'] == 1 else "No (Fail)")
+
+
+
+
+
+
+Output:
+Model valid? True
+Prediction: Yes (Pass)
