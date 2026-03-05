@@ -1,0 +1,43 @@
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+import numpy as np
+
+# Sample email dataset
+emails = [
+    "win free money",
+    "project meeting tomorrow",
+    "limited offer win prize",
+    "schedule the meeting",
+    "free lottery win",
+    "project report discussion"
+]
+
+labels = [1,0,1,0,1,0]  # 1 = Spam, 0 = Not Spam
+
+# Convert text to numbers
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(emails).toarray()
+
+y = np.array(labels)
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3)
+
+# Train Gaussian Naive Bayes
+model = GaussianNB()
+model.fit(X_train,y_train)
+
+# Test prediction
+test_email = ["free prize win"]
+test_vector = vectorizer.transform(test_email).toarray()
+
+prediction = model.predict(test_vector)
+
+print("Spam" if prediction[0]==1 else "Not Spam")
+
+
+
+
+Output:
+spam
