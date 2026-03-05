@@ -1,0 +1,35 @@
+import numpy as np
+
+# Data: heads and tails
+data = [(5,5),(9,1),(8,2),(4,6),(7,3)]
+
+theta_A = 0.6
+theta_B = 0.5
+
+for iteration in range(10):
+
+    heads_A = tails_A = 0
+    heads_B = tails_B = 0
+
+    for h,t in data:
+
+        pA = (theta_A**h)*((1-theta_A)**t)
+        pB = (theta_B**h)*((1-theta_B)**t)
+
+        wA = pA/(pA+pB)
+        wB = pB/(pA+pB)
+
+        heads_A += wA*h
+        tails_A += wA*t
+
+        heads_B += wB*h
+        tails_B += wB*t
+
+    theta_A = heads_A/(heads_A+tails_A)
+    theta_B = heads_B/(heads_B+tails_B)
+
+print(theta_A, theta_B)
+
+
+Output:
+0.7968 0.5196
